@@ -14,3 +14,5 @@ label1.image = test
 # Position image
 label1.place(x=0, y=100)
 root.mainloop()
+
+print("test")
