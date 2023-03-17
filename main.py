@@ -1,68 +1,48 @@
-def battery():
-    
-    print("Now...which direction is the new battery (B2) pointing with respect to the original battery (B1)?")
-    print("")
-    print("As if our new battery was in series, use the menu to decide the direction.")
-    print("")
-    print("MENU--1: same direction; 2: opposite direction.")
-    
-#def capacitor():
-#def inductor():
-def resistor():
-    
-    Vb = float(input("What is the voltage of B1 in Volts: "))
-    strength_1 = float(input("What is the resistance of R1 in Ohms: "))
-    strength_2 = float(input("What is the resistance of R2 in Ohms: "))
-    i_R1 = float(Vb/strength_1)
-    print("")
-    print("Although R2 is",strength_2,"Ohms, it has no impact on the current through R1 (i_R1), because the resistors are in parallel.")
-    print("")
-    print("Kirchoff's Voltage Rule demands the voltage of the battery (Vb) must equal the sum of voltage drops across any path of current.")
-    print("")
-    print("We ONLY have two objects in this circuit, and they are in parallel, so the voltage drop across each equals Vb.")
-    print("")
-    return i_R1
+from skidl import *
+import matplotlib.pyplot as plt
+import PySpice
 
-if __name__ == '__main__':
-    
-    print("There is a simple circuit with one battery (B1) and two items in parallel. There is nothing else outside the parallel.")
-    print("")
-    print("Occupying one route is a resistor (R1). Using the menu, you get to choose the item across the resistor!")
-    print("")
-    print("Then the program will calculate the current flowing through the resistor as a function of time.")
-    print("")
-    print("As you can imagine, depending on what you choose...the current will behave differently.")
-    print("")
-    print("MENU--1: Battery; 2: Capacitor; 3: Inductor; 4: Resistor; 5: Just Wire")
-    
-    item_block = int(input("Enter a number on the menu: "))
-    
-    #if item_block == 1:
-        
-    #if item_block == 2:
-    
-    #if item_block == 3:
-        
-    if item_block == 4:
-        print("The current across R1 is",resistor(),"Amperes.")
-        print("")
-        print("Current is a dependent variable with respect to voltage and resistance.")
-        print("")
-        print("To change i_R1, either change R1, add a resistor in series with R1, or change Vb.")
-        
-    if item_block == 5:
-        print("")
-        print("The current across R1 is 0 Amperes.")
-        print("")
-        print("Kirchoff's Junction Rule demands the current that enters a parallel must be equal to the current that exits it.")
-        print("")
-        print("This means the sum of the currents through each loop of the parallel equals the total current of the circuit.")
-        print("")
-        print("However, when encountering a parallel, the majority of the current will feed through the loop with the least resistance.")
-        print("")
-        print("Ultimately, both loops will have current flow (reduced with respect to the total circuit current) unless...")
-        print("")
-        print("One of the paths has NO resistance, so ALL of the current will feed through that loop, leaving i_R1 = 0.")
-        
-    else:
-        print("Invalid input. Rerun the program.")
+
+def printBoard(letter, device):
+    print(" ----------------------------------------- ")
+    print(" |                  |                    | ")
+    print("(+) V1              z R1             {0}1 ({1}) ".format(letter, device))
+    print(" |                  |                    | ")
+    print(" -----------------------------------------")
+
+def testCircuit():
+    pass
+    # reset()
+
+    # vs = V(ref='VS', dc_value = 1 @ u_V)  # Create a voltage source named "VS" with an initial value of 1 volt.
+    # r1 = R(value = 1 @ u_kOhm)            # Create a 1 Kohm resistor.
+    # vs['p'] += r1[1]       # Connect one end of the resistor to the positive terminal of the voltage source.
+    # gnd += vs['n'], r1[2]  # Connect the other end of the resistor and the negative terminal of the source to ground.
+
+    # # Simulate the circuit.
+    # circ = generate_netlist()              # Translate the SKiDL code into a PyCircuit Circuit object.
+    # sim = circ.simulator()                 # Create a simulator for the Circuit object.
+    # dc_vals = sim.dc(VS=slice(0, 1, 0.1))  # Run a DC simulation where the voltage ramps from 0 to 1V by 0.1V increments.
+
+    # # Get the voltage applied to the resistor and the current coming out of the voltage source.
+    # voltage = dc_vals[node(vs['p'])]       # Get the voltage applied by the positive terminal of the source.
+    # current = -dc_vals['VS']               # Get the current coming out of the positive terminal of the voltage source.
+
+    # # Print a table showing the current through the resistor for the various applied voltages.
+    # print('{:^7s}{:^7s}'.format('V', ' I (mA)'))
+    # print('='*15)
+    # for v, i in zip(voltage.as_ndarray(), current.as_ndarray()*1000):
+    #     print('{:6.2f} {:6.2f}'.format(v, i))
+
+    # # Create a plot of the current (Y coord) versus the applied voltage (X coord).
+    # figure = plt.figure(1)
+    # plt.title('Resistor Current vs. Applied Voltage')
+    # plt.xlabel('Voltage (V)')
+    # plt.ylabel('Current (mA)')
+    # plt.plot(voltage, current*1000) # Plot X=voltage and Y=current (in milliamps, so multiply it by 1000).
+    # plt.show()
+
+if __name__ == "__main__":
+    # printBoard("C", "=")
+    # printBoard("I", "^")
+    testCircuit()
