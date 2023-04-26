@@ -146,4 +146,4 @@ if __name__ == "__main__":
     # printBoard("C", "=")
     # printBoard("I", "^")
     testCircuit()
->>>>>>> 32809816487c1f8b857db50c4d67d30c568fdfc5
+# >>>>>>> 32809816487c1f8b857db50c4d67d30c568fdfc5
