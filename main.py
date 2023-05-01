@@ -1,24 +1,44 @@
 import schemdraw
 import schemdraw.elements as elm
 
+def createNetlist(r1, r2, device):
+    pass
+
 def drawCircuit(values, device):
+    if values[2] == "Device":
+        r1Label = "R1"
+        r2Label = "R2"
+    else:
+        r1Label = values[0]
+        r2Label = values[1]
+
+    deviceLabel = values[2]
+
     if device == 1:
-        circuitDevice = (I1 := elm.Capacitor().down().label('Device', loc='bot'))
+        circuitDevice = (I1 := elm.SourceV().down().label(deviceLabel, loc='bot'))
+    elif device == 2:
+        circuitDevice = (I1 := elm.SourceI().down().label(deviceLabel, loc='bot'))
+    elif device == 3:
+        circuitDevice = (I1 := elm.Resistor().down().label(deviceLabel, loc='bot'))
+    elif device == 4:
+        circuitDevice = (I1 := elm.Capacitor().down().label(deviceLabel, loc='bot'))
+    elif device == 5:
+        circuitDevice = (I1 := elm.Inductor().down().label(deviceLabel, loc='bot'))
 
     with schemdraw.Drawing() as d:
         d.config(unit=5)
         d += (V1 := elm.SourceV().label('5V'))
-        d += (R1 := elm.Resistor().right().label('R1')).label(['+','$v_{R1}$','-'], loc='bot')
+        d += (R1 := elm.Resistor().right().label(r1Label)).label(['+','$v_{R1}$','-'], loc='bot')
         d += elm.Dot()
         d.push()
-        d += (R2 := elm.Resistor().down().label('R2', loc='bot', rotate=True)).label(['+','$v_{R2}$','-'])
+        d += (R2 := elm.Resistor().down().label(r2Label, loc='bot')).label(['+','$v_{R2}$','-'])
         d += elm.Dot()
         d.pop()
         d += elm.Switch(action="close")
         # d += (L1 := elm.Line())
-        if device == 0:
+        if device == 0 or device == 6:
             elm.style(elm.STYLE_IEC)
-            d += (I1 := elm.Resistor().down().label('Device', loc='bot'))
+            d += (I1 := elm.Resistor().down().label(deviceLabel, loc='bot'))
             elm.style(elm.STYLE_IEEE)
         else:
             d += circuitDevice
@@ -28,9 +48,30 @@ def drawCircuit(values, device):
         d.draw()
 
 def constructCircuit():
-    drawCircuit([1, 2], 0)
-    drawCircuit([1, 2], 1)
-    print("What device would you like to use?")
+    # Displays default device as a placeholder
+    print("What device would you like to use where the place holder device is?")
+    print("1. Voltage Source")
+    print("2. Current Source")
+    print("3. Resistor")
+    print("4. Capacitor")
+    print("5. Inductor")
+    print("6. Just wire")
+    drawCircuit([-1, -1, "Device"], 0)
+    choice = int(input("What device would you like to use?: "))
+
+    r1 = input('Input value with correct units for resistor R1 ("1k" == 1000Ω): ')
+    r2 = input('Input value with correct units for resistor R2 ("1k" == 1000Ω): ')
+    if choice != 6:
+        deviceVal = input('Input value with correct units (for voltage source, you should provide V): ')
+        if choice == 3:
+            drawCircuit([r1 + "Ω", r2 + "Ω", deviceVal + "Ω"], choice)
+        else:
+            drawCircuit([r1 + "Ω", r2 + "Ω", deviceVal], choice)
+    else:
+        drawCircuit([r1, r2, "Wire"], choice)
+        deviceVal = 0
+
+    return r1, r2, deviceVal
 
 def start():
     choice = 0
@@ -41,7 +82,8 @@ def start():
         choice = int(input("Choice: "))
         if choice == 2:
             break
-        constructCircuit()
+        r1, r2, deviceVal = constructCircuit()
+        createNetlist(r1, r2, deviceVal)
 
 if __name__ == "__main__":
     start()
