@@ -88,7 +88,30 @@ def constructCircuit():
 
     return r1, r2, deviceVal
 
+def drawVoltageDivider():
+    pass
+
+def drawRC():
+    with schemdraw.Drawing() as d:
+        d += elm.Resistor().right().label('1kΩ')
+        d += elm.Capacitor().down().label('1μF')
+        d += elm.Line().left()
+        d += elm.SourceSin().up().label('10V')
+        d.save("figures/RCdrawing.jpg")
+
+def drawRL():
+    with schemdraw.Drawing() as d:
+        d += elm.Resistor().right().label('1kΩ')
+        d += elm.Inductor().down().label('1H')
+        d += elm.Line().left()
+        d += elm.SourceSin().up().label('10V')
+        d.save("figures/RLdrawing.jpg")
+
 def voltageDivider():
+# TODO: Add comments
+# TODO: Need to make drawing of circuit with schemdraw
+    drawVoltageDivider()
+
     circuit = Circuit('Voltage Divider')
 
     circuit.V('input', 1, circuit.gnd, 10@u_V)
@@ -102,66 +125,126 @@ def voltageDivider():
         print('Node {}: {:5.2f} V'.format(str(node), float(node)))
 
 def RCCircuit():
-    # figure, (ax1, ax2) = plt.subplots(2, figsize=(20, 10))
+# TODO: Fix comments
+# TODO: Maybe have separate subplots for the current and voltage of the capacitor
+# TODO: Try DC source for circuit instead
 
-    element_types = ('capacitor')
+    drawRC()
 
-    for element_type in ('capacitor'):
+    print("Drawing of circuit in figures folder")
 
-        circuit = Circuit(element_type.title())
-        # Fixme: compute value
-        source = circuit.PulseVoltageSource('input', 'in', circuit.gnd,
+    element_type = ('capacitor')
+
+    # for element_type in ('capacitor'):
+
+    circuit = Circuit(element_type.title())
+    # Fixme: compute value
+    
+    source = circuit.PulseVoltageSource('input', 'in', circuit.gnd,
                             initial_value=0@u_V, pulsed_value=10@u_V,
                             pulse_width=10@u_ms, period=20@u_ms)
-        circuit.R(1, 'in', 'out', 1@u_kΩ)
+    circuit.R(1, 'in', 'out', 1@u_kΩ)
+    circuit.C(1, 'out', circuit.gnd, 1@u_uF)
+    # circuit.R(2, 'out', circuit.gnd, kilo(1)) # for debug
 
-        element = circuit.C
-        value = 1@u_uF
-            # tau = L/R = 1 ms
-        element(1, 'out', circuit.gnd, value)
-        # circuit.R(2, 'out', circuit.gnd, kilo(1)) # for debug
+    tau = circuit['R1'].resistance * circuit['C1'].capacitance
 
-        tau = circuit['R1'].resistance * circuit['C1'].capacitance
+    simulator = circuit.simulator(temperature=25, nominal_temperature=25)
+    step_time = 10@u_us
+    analysis = simulator.transient(step_time=step_time, end_time=source.period*3)
 
-        simulator = circuit.simulator(temperature=25, nominal_temperature=25)
-        step_time = 10@u_us
-        analysis = simulator.transient(step_time=step_time, end_time=source.period*3)
-
-        # Let define the theoretical output voltage.
-        def out_voltage(t, tau):
+    # Let define the theoretical output voltage.
+    def out_voltage(t, tau):
                 # Fixme: TypeError: only length-1 arrays can be converted to Python scalars
-            return float(source.pulsed_value) * (1 -  np.exp(-t / tau))
-        # Fixme: get step_time from analysis
-        # At t = 5 tau, each circuit has nearly reached it steady state.
-        i_max = int(5 * tau / float(step_time))
-        popt, pcov = curve_fit(out_voltage, analysis.out.abscissa[:i_max], analysis.out[:i_max])
-        tau_measured = popt[0]
+        return float(source.pulsed_value) * (1 -  np.exp(-t / tau))
+    # Fixme: get step_time from analysis
+    # At t = 5 tau, each circuit has nearly reached it steady state.
+    i_max = int(5 * tau / float(step_time))
+    popt, pcov = curve_fit(out_voltage, analysis.out.abscissa[:i_max], analysis.out[:i_max])
+    tau_measured = popt[0]
 
         # Fixme: use Unit().canonise()
-        print('tau {0} = {1}'.format(element_type, tau.canonise().str_space()))
-        print('tau measured {0} = {1:.1f} ms'.format(element_type, tau_measured * 1000))
+    print('tau {0} = {1}'.format(element_type, tau.canonise().str_space()))
+    print('tau measured {0} = {1:.1f} ms'.format(element_type, tau_measured * 1000))
 
-        title = "Capacitor: voltage is constant"
-        plt.title(title)
-        plt.grid()
-        current_scale = 1000
-        plt.plot(analysis['in'])
-        plt.plot(analysis['out'])
-        # Fixme: resistor current, scale
-        plt.plot(((analysis['in'] - analysis.out)/circuit['R1'].resistance) * current_scale)
-        plt.axvline(x=float(tau), color='red')
-        plt.ylim(-11, 11)
-        plt.xlabel('t [s]')
-        plt.ylabel('[V]')
-        plt.legend(('Vin [V]', 'Vout [V]', 'I'), loc=(.8,.8))
+    title = "Capacitor: voltage is constant"
+    plt.figure()
+    plt.title(title)
+    plt.grid()
+    current_scale = 1000
+    plt.plot(analysis['in'])
+    plt.plot(analysis['out'])
+    # Fixme: resistor current, scale
+    plt.plot(((analysis['in'] - analysis.out)/circuit['R1'].resistance) * current_scale)
+    plt.axvline(x=float(tau), color='red')
+    plt.ylim(-11, 11)
+    plt.xlabel('t [s]')
+    plt.ylabel('[V]')
+    plt.legend(('Vin [V]', 'Vout [V]', 'I'), loc=(.8,.8))
 
     plt.tight_layout()
-    plt.show()
+    plt.savefig("figures/RCCircuit.jpg", dpi=600)
 
 def RLCircuit():
-    pass
+# TODO: Fix comments
+# TODO: Maybe have separate subplots for the current and voltage of the inductor
+# TODO: Try DC source for circuit instead
+
+    drawRL()
+
+    print("Drawing of circuit in figures folder")
+
+    element_type = ('inductor')
+
+    # for element_type in ('capacitor'):
+
+    circuit = Circuit(element_type.title())
+    # Fixme: compute value
+    
+    source = circuit.PulseVoltageSource('input', 'in', circuit.gnd,
+                            initial_value=0@u_V, pulsed_value=10@u_V,
+                            pulse_width=10@u_ms, period=20@u_ms)
+    circuit.R(1, 'in', 'out', 1@u_kΩ)
+    circuit.L(1, 'out', circuit.gnd, 1@u_H)
+    # circuit.R(2, 'out', circuit.gnd, kilo(1)) # for debug
+
+    tau = circuit['L1'].inductance / circuit['R1'].resistance
+
+    simulator = circuit.simulator(temperature=25, nominal_temperature=25)
+    step_time = 10@u_us
+    analysis = simulator.transient(step_time=step_time, end_time=source.period*3)
+
+    # Let define the theoretical output voltage.
+    def out_voltage(t, tau):
+        return float(source.pulsed_value) * np.exp(-t / tau)
+    # Fixme: get step_time from analysis
+    # At t = 5 tau, each circuit has nearly reached it steady state.
+    i_max = int(5 * tau / float(step_time))
+    popt, pcov = curve_fit(out_voltage, analysis.out.abscissa[:i_max], analysis.out[:i_max])
+    tau_measured = popt[0]
+
+    print('tau {0} = {1}'.format(element_type, tau.canonise().str_space()))
+    print('tau measured {0} = {1:.1f} ms'.format(element_type, tau_measured * 1000))
+
+    plt.figure()
+    plt.title("Inductor: current is constant")
+    plt.grid()
+    current_scale = 1000
+    plt.plot(analysis['in'])
+    plt.plot(analysis['out'])
+    # Fixme: resistor current, scale
+    plt.plot(((analysis['in'] - analysis.out)/circuit['R1'].resistance) * current_scale)
+    plt.axvline(x=float(tau), color='red')
+    plt.ylim(-11, 11)
+    plt.xlabel('t [s]')
+    plt.ylabel('[V]')
+    plt.legend(('Vin [V]', 'Vout [V]', 'I'), loc=(.8,.8))
+
+    plt.tight_layout()
+    plt.savefig("figures/RLCircuit.jpg", dpi=600)
 
 def start():
+# TODO: Possibly add RLC circuit as well
     choice = 0
     while choice != 5:
         print("What would would you like to do?")
