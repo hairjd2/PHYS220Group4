@@ -151,7 +151,7 @@ def RCCircuit():
 
     simulator = circuit.simulator(temperature=25, nominal_temperature=25)
     step_time = 10@u_us
-    analysis = simulator.transient(step_time=step_time, end_time=source.period*3)
+    analysis = simulator.transient(step_time=step_time, end_time=source.period * 3)
 
     # Let define the theoretical output voltage.
     def out_voltage(t, tau):
@@ -167,19 +167,27 @@ def RCCircuit():
     print('tau {0} = {1}'.format(element_type, tau.canonise().str_space()))
     print('tau measured {0} = {1:.1f} ms'.format(element_type, tau_measured * 1000))
 
-    title = "Capacitor: voltage is constant"
     plt.figure()
-    plt.title(title)
-    plt.grid()
+    fig, plots = plt.subplots(2, 1)
+    plt.suptitle("Capacitor: voltage is constant")
     current_scale = 1000
-    plt.plot(analysis['in'])
-    plt.plot(analysis['out'])
+    plots[0].set_title("Voltage of Capacitor")
+    plots[0].grid()
+    plots[0].plot(analysis['in'])
+    plots[0].plot(analysis['out'])
+    # plots[1].set_xlim(0, 1000)
+    plots[1].set_ylim(-0.01, 11)
+    plots[0].set_xlabel('t (s)')
+    plots[0].set_ylabel('V')
     # Fixme: resistor current, scale
-    plt.plot(((analysis['in'] - analysis.out)/circuit['R1'].resistance) * current_scale)
-    plt.axvline(x=float(tau), color='red')
-    plt.ylim(-11, 11)
-    plt.xlabel('t [s]')
-    plt.ylabel('[V]')
+    plots[1].set_title("Current")
+    plots[1].grid()
+    plots[1].plot(analysis['in'])
+    plots[1].plot(((analysis['in'] - analysis.out)/circuit['R1'].resistance) * current_scale)
+    # plots[1].set_xlim(0, 1000)
+    plots[1].set_ylim(-0.01, 11)
+    plots[1].set_xlabel('t [s]')
+    plots[1].set_ylabel('mA')
     plt.legend(('Vin [V]', 'Vout [V]', 'I'), loc=(.8,.8))
 
     plt.tight_layout()
@@ -212,7 +220,7 @@ def RLCircuit():
 
     simulator = circuit.simulator(temperature=25, nominal_temperature=25)
     step_time = 10@u_us
-    analysis = simulator.transient(step_time=step_time, end_time=source.period*3)
+    analysis = simulator.transient(step_time=step_time, end_time=source.period * 0.5)
 
     # Let define the theoretical output voltage.
     def out_voltage(t, tau):
@@ -227,17 +235,26 @@ def RLCircuit():
     print('tau measured {0} = {1:.1f} ms'.format(element_type, tau_measured * 1000))
 
     plt.figure()
-    plt.title("Inductor: current is constant")
-    plt.grid()
+    fig, plots = plt.subplots(2, 1)
+    plt.suptitle("Inductor: current is constant")
     current_scale = 1000
-    plt.plot(analysis['in'])
-    plt.plot(analysis['out'])
+    plots[0].set_title("Voltage of Inductor")
+    plots[0].grid()
+    plots[0].plot(analysis['in'])
+    plots[0].plot(analysis['out'])
+    plots[1].set_xlim(0, 1000)
+    plots[1].set_ylim(-0.01, 11)
+    plots[0].set_xlabel('t (s)')
+    plots[0].set_ylabel('V')
     # Fixme: resistor current, scale
-    plt.plot(((analysis['in'] - analysis.out)/circuit['R1'].resistance) * current_scale)
-    plt.axvline(x=float(tau), color='red')
-    plt.ylim(-11, 11)
-    plt.xlabel('t [s]')
-    plt.ylabel('[V]')
+    plots[1].set_title("Current")
+    plots[1].grid()
+    plots[1].plot(analysis['in'])
+    plots[1].plot(((analysis['in'] - analysis.out)/circuit['R1'].resistance) * current_scale)
+    plots[1].set_xlim(0, 1000)
+    plots[1].set_ylim(-0.01, 11)
+    plots[1].set_xlabel('t [s]')
+    plots[1].set_ylabel('mA')
     plt.legend(('Vin [V]', 'Vout [V]', 'I'), loc=(.8,.8))
 
     plt.tight_layout()
