@@ -89,23 +89,62 @@ def constructCircuit():
     return r1, r2, deviceVal
 
 def drawVoltageDivider():
-    pass
+    with schemdraw.Drawing() as d:
+        d += elm.Ground()
+        d += elm.SourceV().up().label('5V')
+        d += elm.Dot().label('in')
+        d += elm.Resistor().right().label('2kΩ')
+        d.push()
+        d += elm.Line().right()
+        d += elm.Dot(open=True).label('out')
+        d.pop()
+        d += elm.Resistor().down().label('1kΩ')
+        d += elm.Line().left()
+        d.save("figures/VoltageDivider.jpg")
 
 def drawRC():
     with schemdraw.Drawing() as d:
+        d += elm.Switch()
         d += elm.Resistor().right().label('1kΩ')
         d += elm.Capacitor().down().label('1μF')
         d += elm.Line().left()
-        d += elm.SourceSin().up().label('10V')
-        d.save("figures/RCdrawing.jpg")
+        d += elm.Line().left()
+        d += elm.SourceV().up().label('5V')
+        d.save("figures/RCDrawingOpen.jpg")
+
+    with schemdraw.Drawing() as d:
+        d += elm.Switch(action="close")
+        d += elm.Resistor().right().label('1kΩ')
+        d += elm.Capacitor().down().label('1μF')
+        d += elm.Line().left()
+        d += elm.Line().left()
+        d += elm.SourceV().up().label('5V')
+        d.save("figures/RCDrawingClosed.jpg")
 
 def drawRL():
     with schemdraw.Drawing() as d:
+        d += elm.Dot().label("in")
+        d += elm.Switch()
+        d += elm.Dot().label("resistor")
         d += elm.Resistor().right().label('1kΩ')
+        d += elm.Dot().label("out")
         d += elm.Inductor().down().label('1H')
         d += elm.Line().left()
-        d += elm.SourceSin().up().label('10V')
-        d.save("figures/RLdrawing.jpg")
+        d += elm.Line().left()
+        d += elm.SourceV().up().label('5V')
+        d.save("figures/RLDrawingOpen.jpg")
+
+    with schemdraw.Drawing() as d:
+        d += elm.Dot().label("in")
+        d += elm.Switch(action="close")
+        d += elm.Dot().label("resistor")
+        d += elm.Resistor().right().label('1kΩ')
+        d += elm.Dot().label("out")
+        d += elm.Inductor().down().label('1H')
+        d += elm.Line().left()
+        d += elm.Line().left()
+        d += elm.SourceV().up().label('5V')
+        d.save("figures/RLDrawingClosed.jpg")
 
 def voltageDivider():
 # TODO: Add comments
@@ -114,9 +153,9 @@ def voltageDivider():
 
     circuit = Circuit('Voltage Divider')
 
-    circuit.V('input', 1, circuit.gnd, 10@u_V)
-    circuit.R(1, 1, 2, 2@u_kΩ)
-    circuit.R(2, 2, circuit.gnd, 1@u_kΩ)
+    circuit.V('input', 'in', circuit.gnd, 10@u_V)
+    circuit.R(1, 'in', 'out', 2@u_kΩ)
+    circuit.R(2, 'out', circuit.gnd, 1@u_kΩ)
 
     simulator = circuit.simulator(temperature=25, nominal_temperature=25)
     analysis = simulator.operating_point()
@@ -141,7 +180,7 @@ def RCCircuit():
     # Fixme: compute value
     
     source = circuit.PulseVoltageSource('input', 'in', circuit.gnd,
-                            initial_value=0@u_V, pulsed_value=10@u_V,
+                            initial_value=0@u_V, pulsed_value=5@u_V,
                             pulse_width=10@u_ms, period=20@u_ms)
     circuit.R(1, 'in', 'out', 1@u_kΩ)
     circuit.C(1, 'out', circuit.gnd, 1@u_uF)
@@ -151,7 +190,7 @@ def RCCircuit():
 
     simulator = circuit.simulator(temperature=25, nominal_temperature=25)
     step_time = 10@u_us
-    analysis = simulator.transient(step_time=step_time, end_time=source.period * 3)
+    analysis = simulator.transient(step_time=step_time, end_time=source.period)
 
     # Let define the theoretical output voltage.
     def out_voltage(t, tau):
@@ -176,7 +215,7 @@ def RCCircuit():
     plots[0].plot(analysis['in'])
     plots[0].plot(analysis['out'])
     # plots[1].set_xlim(0, 1000)
-    plots[1].set_ylim(-0.01, 11)
+    plots[1].set_ylim(-0.01, 6)
     plots[0].set_xlabel('t (s)')
     plots[0].set_ylabel('V')
     # Fixme: resistor current, scale
@@ -184,8 +223,9 @@ def RCCircuit():
     plots[1].grid()
     plots[1].plot(analysis['in'])
     plots[1].plot(((analysis['in'] - analysis.out)/circuit['R1'].resistance) * current_scale)
+    print(analysis)
     # plots[1].set_xlim(0, 1000)
-    plots[1].set_ylim(-0.01, 11)
+    plots[1].set_ylim(-0.01, 6)
     plots[1].set_xlabel('t [s]')
     plots[1].set_ylabel('mA')
     plt.legend(('Vin [V]', 'Vout [V]', 'I'), loc=(.8,.8))
@@ -204,13 +244,11 @@ def RLCircuit():
 
     element_type = ('inductor')
 
-    # for element_type in ('capacitor'):
-
     circuit = Circuit(element_type.title())
     # Fixme: compute value
     
     source = circuit.PulseVoltageSource('input', 'in', circuit.gnd,
-                            initial_value=0@u_V, pulsed_value=10@u_V,
+                            initial_value=0@u_V, pulsed_value=5@u_V,
                             pulse_width=10@u_ms, period=20@u_ms)
     circuit.R(1, 'in', 'out', 1@u_kΩ)
     circuit.L(1, 'out', circuit.gnd, 1@u_H)
@@ -220,7 +258,7 @@ def RLCircuit():
 
     simulator = circuit.simulator(temperature=25, nominal_temperature=25)
     step_time = 10@u_us
-    analysis = simulator.transient(step_time=step_time, end_time=source.period * 0.5)
+    analysis = simulator.transient(step_time=step_time, end_time=source.period)
 
     # Let define the theoretical output voltage.
     def out_voltage(t, tau):
@@ -242,8 +280,8 @@ def RLCircuit():
     plots[0].grid()
     plots[0].plot(analysis['in'])
     plots[0].plot(analysis['out'])
-    plots[1].set_xlim(0, 1000)
-    plots[1].set_ylim(-0.01, 11)
+    # plots[1].set_xlim(0, 1000)
+    plots[0].set_ylim(-0.01, 6)
     plots[0].set_xlabel('t (s)')
     plots[0].set_ylabel('V')
     # Fixme: resistor current, scale
@@ -251,8 +289,8 @@ def RLCircuit():
     plots[1].grid()
     plots[1].plot(analysis['in'])
     plots[1].plot(((analysis['in'] - analysis.out)/circuit['R1'].resistance) * current_scale)
-    plots[1].set_xlim(0, 1000)
-    plots[1].set_ylim(-0.01, 11)
+    # plots[1].set_xlim(0, 1000)
+    plots[1].set_ylim(-0.01, 6)
     plots[1].set_xlabel('t [s]')
     plots[1].set_ylabel('mA')
     plt.legend(('Vin [V]', 'Vout [V]', 'I'), loc=(.8,.8))
@@ -260,16 +298,86 @@ def RLCircuit():
     plt.tight_layout()
     plt.savefig("figures/RLCircuit.jpg", dpi=600)
 
+def RLCCircuit():
+    drawRL()
+
+    print("Drawing of circuit in figures folder")
+
+    element_type = ('inductor')
+
+    # for element_type in ('capacitor'):
+
+    circuit = Circuit(element_type.title())
+    # Fixme: compute value
+    
+    source = circuit.PulseVoltageSource('input', 'in', circuit.gnd,
+                            initial_value=0@u_V, pulsed_value=5@u_V,
+                            pulse_width=10@u_ms, period=20@u_ms)
+    # circuit.R(1, 'in', 'resistor', 1@u_kΩ)
+    # circuit.L(1, 'resistor', 'out', 1@u_H)
+    # circuit.C(1, 'out', circuit.gnd, 1@u_uF)
+
+    circuit.R(1, 'in', circuit.gnd, 1@u_kΩ)
+    circuit.L(1, 'resistor', circuit.gnd, 1@u_H)
+    circuit.C(1, 'out', circuit.gnd, 1@u_uF)
+    # circuit.R(2, 'out', circuit.gnd, kilo(1)) # for debug
+
+    tau = circuit['L1'].inductance / circuit['R1'].resistance
+
+    simulator = circuit.simulator(temperature=25, nominal_temperature=25)
+    step_time = 10@u_us
+    analysis = simulator.transient(step_time=step_time, end_time=source.period)
+
+    # Let define the theoretical output voltage.
+    def out_voltage(t, tau):
+        return float(source.pulsed_value) * np.exp(-t / tau)
+    # Fixme: get step_time from analysis
+    # At t = 5 tau, each circuit has nearly reached it steady state.
+    i_max = int(5 * tau / float(step_time))
+    popt, pcov = curve_fit(out_voltage, analysis.out.abscissa[:i_max], analysis.out[:i_max])
+    tau_measured = popt[0]
+
+    print('tau {0} = {1}'.format(element_type, tau.canonise().str_space()))
+    print('tau measured {0} = {1:.1f} ms'.format(element_type, tau_measured * 1000))
+
+    plt.figure()
+    fig, plots = plt.subplots(2, 1)
+    plt.suptitle("Inductor: current is constant")
+    current_scale = 1000
+    plots[0].set_title("Voltage of Inductor")
+    plots[0].grid()
+    plots[0].plot(analysis['in'])
+    plots[0].plot(analysis['out'])
+    plots[0].plot(analysis['resistor'])
+    # plots[1].set_xlim(0, 1000)
+    plots[0].set_ylim(-0.01, 6)
+    plots[0].set_xlabel('t (s)')
+    plots[0].set_ylabel('V')
+    # Fixme: resistor current, scale
+    plots[1].set_title("Current")
+    plots[1].grid()
+    plots[1].plot(analysis['in'])
+    plots[1].plot(((analysis['in'] - analysis.out)/circuit['R1'].resistance) * current_scale)
+    # plots[1].set_xlim(0, 1000)
+    plots[1].set_ylim(-0.01, 6)
+    plots[1].set_xlabel('t [s]')
+    plots[1].set_ylabel('mA')
+    plt.legend(('Vin [V]', 'Vout [V]', 'I'), loc=(.8,.8))
+
+    plt.tight_layout()
+    plt.savefig("figures/RLCCircuit.jpg", dpi=600)
+
 def start():
 # TODO: Possibly add RLC circuit as well
     choice = 0
-    while choice != 5:
+    while choice != 6:
         print("What would would you like to do?")
         print("1. Construct main circuit")
         print("2. Simulate voltage divider")
         print("3. Simulate RC circuit")
         print("4. Simulate RL circuit")
-        print("5. Quit")
+        print("5. Simulate RLC")
+        print("6. Quit")
         choice = int(input("Choice: "))
         if choice == 1:
             r1, r2, deviceVal = constructCircuit()
@@ -281,6 +389,8 @@ def start():
         elif choice == 4:
             RLCircuit()
         elif choice == 5:
+            RLCCircuit()
+        elif choice == 6:
             break
 
 if __name__ == "__main__":
