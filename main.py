@@ -190,7 +190,7 @@ def RCCircuit():
 
     simulator = circuit.simulator(temperature=25, nominal_temperature=25)
     step_time = 10@u_us
-    analysis = simulator.transient(step_time=step_time, end_time=source.period)
+    analysis = simulator.transient(step_time=step_time, end_time=source.period * 0.5)
 
     # Let define the theoretical output voltage.
     def out_voltage(t, tau):
@@ -214,29 +214,29 @@ def RCCircuit():
     plots[0].grid()
     plots[0].plot(analysis['in'])
     plots[0].plot(analysis['out'])
-    # plots[1].set_xlim(0, 1000)
-    plots[1].set_ylim(-0.01, 6)
-    plots[0].set_xlabel('t (s)')
+    plots[0].set_xlim(0, 1000)
+    plots[0].set_ylim(-0.01, 5.1)
+    plots[0].set_xlabel('t [μs]')
     plots[0].set_ylabel('V')
-    # Fixme: resistor current, scale
+    plots[0].legend(('Vin [V]', 'Vout [V]'), loc="best")
+
+    ax1 = plots[1].twinx()
     plots[1].set_title("Current")
     plots[1].grid()
     plots[1].plot(analysis['in'])
     plots[1].plot(((analysis['in'] - analysis.out)/circuit['R1'].resistance) * current_scale)
-    print(analysis)
-    # plots[1].set_xlim(0, 1000)
-    plots[1].set_ylim(-0.01, 6)
-    plots[1].set_xlabel('t [s]')
-    plots[1].set_ylabel('mA')
-    plt.legend(('Vin [V]', 'Vout [V]', 'I'), loc=(.8,.8))
+    plots[1].set_xlim(0, 1000)
+    plots[1].set_ylim(-0.01, 5.1)
+    plots[1].set_xlabel('t [μs]')
+    plots[1].set_ylabel('Voltage [V]')
+    ax1.set_ylabel('Current [mA]')
+    plots[1].legend(('Vin [V]', 'I [mA]'), loc="best")
 
     plt.tight_layout()
     plt.savefig("figures/RCCircuit.jpg", dpi=600)
 
 def RLCircuit():
 # TODO: Fix comments
-# TODO: Maybe have separate subplots for the current and voltage of the inductor
-# TODO: Try DC source for circuit instead
 
     drawRL()
 
@@ -258,7 +258,7 @@ def RLCircuit():
 
     simulator = circuit.simulator(temperature=25, nominal_temperature=25)
     step_time = 10@u_us
-    analysis = simulator.transient(step_time=step_time, end_time=source.period)
+    analysis = simulator.transient(step_time=step_time, end_time=source.period * 0.5)
 
     # Let define the theoretical output voltage.
     def out_voltage(t, tau):
@@ -280,20 +280,22 @@ def RLCircuit():
     plots[0].grid()
     plots[0].plot(analysis['in'])
     plots[0].plot(analysis['out'])
-    # plots[1].set_xlim(0, 1000)
-    plots[0].set_ylim(-0.01, 6)
-    plots[0].set_xlabel('t (s)')
+    plots[1].set_xlim(0, 1000)
+    plots[0].set_ylim(-0.01, 5.1)
+    plots[0].set_xlabel('t (μs)')
     plots[0].set_ylabel('V')
-    # Fixme: resistor current, scale
+
+    ax1 = plots[1].twinx()
     plots[1].set_title("Current")
     plots[1].grid()
     plots[1].plot(analysis['in'])
     plots[1].plot(((analysis['in'] - analysis.out)/circuit['R1'].resistance) * current_scale)
-    # plots[1].set_xlim(0, 1000)
-    plots[1].set_ylim(-0.01, 6)
-    plots[1].set_xlabel('t [s]')
-    plots[1].set_ylabel('mA')
-    plt.legend(('Vin [V]', 'Vout [V]', 'I'), loc=(.8,.8))
+    plots[1].set_xlim(0, 1000)
+    plots[1].set_ylim(-0.01, 5.1)
+    plots[1].set_xlabel('t [μs]')
+    plots[1].set_ylabel('Voltage [V]')
+    ax1.set_ylabel('Current [mA]')
+    plt.legend(('Vin [V]', 'Vout [V]', 'I'), loc=(.8, .8))
 
     plt.tight_layout()
     plt.savefig("figures/RLCircuit.jpg", dpi=600)
