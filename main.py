@@ -104,8 +104,10 @@ def drawVoltageDivider():
 
 def drawRC():
     with schemdraw.Drawing() as d:
+        d += elm.Dot().label("in")
         d += elm.Switch()
         d += elm.Resistor().right().label('1kΩ')
+        d += elm.Dot().label("out")
         d += elm.Capacitor().down().label('1μF')
         d += elm.Line().left()
         d += elm.Line().left()
@@ -113,8 +115,10 @@ def drawRC():
         d.save("figures/RCDrawingOpen.jpg")
 
     with schemdraw.Drawing() as d:
+        d += elm.Dot().label("in")
         d += elm.Switch(action="close")
         d += elm.Resistor().right().label('1kΩ')
+        d += elm.Dot().label("out")
         d += elm.Capacitor().down().label('1μF')
         d += elm.Line().left()
         d += elm.Line().left()
@@ -125,7 +129,6 @@ def drawRL():
     with schemdraw.Drawing() as d:
         d += elm.Dot().label("in")
         d += elm.Switch()
-        d += elm.Dot().label("resistor")
         d += elm.Resistor().right().label('1kΩ')
         d += elm.Dot().label("out")
         d += elm.Inductor().down().label('1H')
@@ -137,7 +140,6 @@ def drawRL():
     with schemdraw.Drawing() as d:
         d += elm.Dot().label("in")
         d += elm.Switch(action="close")
-        d += elm.Dot().label("resistor")
         d += elm.Resistor().right().label('1kΩ')
         d += elm.Dot().label("out")
         d += elm.Inductor().down().label('1H')
@@ -284,6 +286,7 @@ def RLCircuit():
     plots[0].set_ylim(-0.01, 5.1)
     plots[0].set_xlabel('t (μs)')
     plots[0].set_ylabel('V')
+    plots[0].legend(('Vin [V]', 'Vout [V]'), loc="best")
 
     ax1 = plots[1].twinx()
     plots[1].set_title("Current")
@@ -295,7 +298,7 @@ def RLCircuit():
     plots[1].set_xlabel('t [μs]')
     plots[1].set_ylabel('Voltage [V]')
     ax1.set_ylabel('Current [mA]')
-    plt.legend(('Vin [V]', 'Vout [V]', 'I'), loc=(.8, .8))
+    plots[1].legend(('Vin [V]', 'I [mA]'), loc="best")
 
     plt.tight_layout()
     plt.savefig("figures/RLCircuit.jpg", dpi=600)
