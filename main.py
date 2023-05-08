@@ -17,7 +17,12 @@ from PySpice.Unit import *
 from PySpice.Probe.Plot import plot
 
 def createNetlist(r1, r2, device):
-    pass
+    # resistor1 = 
+
+    circuit = Circuit("Main circuit")
+
+    circuit.V('input', 'in', circuit.gnd, 5@u_V)
+    circuit.R(1, 'in', 'node1', )
 
 def drawCircuit(values, device):
     if values[2] == "Device":
@@ -148,6 +153,19 @@ def drawRL():
         d += elm.SourceV().up().label('5V')
         d.save("figures/RLDrawingClosed.jpg")
 
+def drawRLC():
+    with schemdraw.Drawing() as d:
+        d += elm.Dot().label("in")
+        d += elm.Resistor().right().label('1kΩ')
+        d += elm.Dot().label("resistor")
+        d += elm.Inductor().right().label('1H')
+        d += elm.Dot().label("out")
+        d += elm.Capacitor().down().label('1μF')
+        d += elm.Line().left()
+        d += elm.Line().left()
+        d += elm.SourceV().up().label('5V')
+        d.save("figures/RLCDrawing.jpg")
+
 def voltageDivider():
 # TODO: Add comments
 # TODO: Need to make drawing of circuit with schemdraw
@@ -155,7 +173,7 @@ def voltageDivider():
 
     circuit = Circuit('Voltage Divider')
 
-    circuit.V('input', 'in', circuit.gnd, 10@u_V)
+    circuit.V('input', 'in', circuit.gnd, 5@u_V)
     circuit.R(1, 'in', 'out', 2@u_kΩ)
     circuit.R(2, 'out', circuit.gnd, 1@u_kΩ)
 
@@ -304,7 +322,7 @@ def RLCircuit():
     plt.savefig("figures/RLCircuit.jpg", dpi=600)
 
 def RLCCircuit():
-    drawRL()
+    drawRLC()
 
     print("Drawing of circuit in figures folder")
 
@@ -315,59 +333,67 @@ def RLCCircuit():
     circuit = Circuit(element_type.title())
     # Fixme: compute value
     
-    source = circuit.PulseVoltageSource('input', 'in', circuit.gnd,
-                            initial_value=0@u_V, pulsed_value=5@u_V,
-                            pulse_width=10@u_ms, period=20@u_ms)
-    # circuit.R(1, 'in', 'resistor', 1@u_kΩ)
-    # circuit.L(1, 'resistor', 'out', 1@u_H)
-    # circuit.C(1, 'out', circuit.gnd, 1@u_uF)
-
-    circuit.R(1, 'in', circuit.gnd, 1@u_kΩ)
-    circuit.L(1, 'resistor', circuit.gnd, 1@u_H)
+    # source = circuit.PulseVoltageSource('input', 'in', circuit.gnd,
+    #                         initial_value=0@u_V, pulsed_value=5@u_V,
+    #                         pulse_width=10@u_ms, period=20@u_ms)
+    source = circuit.SinusoidalVoltageSource('input', 
+                                 'in', 
+                                 circuit.gnd, 
+                                 amplitude=1@u_V)
+    circuit.R(1, 'in', 'resistor', 1@u_kΩ)
+    circuit.L(1, 'resistor', 'out', 1@u_H)
     circuit.C(1, 'out', circuit.gnd, 1@u_uF)
+
+    # circuit.R(1, 'in', circuit.gnd, 1@u_kΩ)
+    # circuit.L(1, 'resistor', circuit.gnd, 1@u_H)
+    # circuit.C(1, 'out', circuit.gnd, 1@u_uF)
     # circuit.R(2, 'out', circuit.gnd, kilo(1)) # for debug
 
     tau = circuit['L1'].inductance / circuit['R1'].resistance
 
-    simulator = circuit.simulator(temperature=25, nominal_temperature=25)
-    step_time = 10@u_us
-    analysis = simulator.transient(step_time=step_time, end_time=source.period)
+    simulator1 = circuit.simulator(temperature=25, nominal_temperature=25)
+    analysis = simulator1.ac(start_frequency=100@u_Hz, 
+                          stop_frequency=10@u_kHz, 
+                          number_of_points=100,  
+                          variation='dec')
 
     # Let define the theoretical output voltage.
-    def out_voltage(t, tau):
-        return float(source.pulsed_value) * np.exp(-t / tau)
-    # Fixme: get step_time from analysis
-    # At t = 5 tau, each circuit has nearly reached it steady state.
-    i_max = int(5 * tau / float(step_time))
-    popt, pcov = curve_fit(out_voltage, analysis.out.abscissa[:i_max], analysis.out[:i_max])
-    tau_measured = popt[0]
+    # def out_voltage(t, tau):
+    #     return float(source.pulsed_value) * np.exp(-t / tau)
+    # # Fixme: get step_time from analysis
+    # # At t = 5 tau, each circuit has nearly reached it steady state.
+    # i_max = int(5 * tau / float(step_time))
+    # popt, pcov = curve_fit(out_voltage, analysis.out.abscissa[:i_max], analysis.out[:i_max])
+    # tau_measured = popt[0]
 
-    print('tau {0} = {1}'.format(element_type, tau.canonise().str_space()))
-    print('tau measured {0} = {1:.1f} ms'.format(element_type, tau_measured * 1000))
+    # print('tau {0} = {1}'.format(element_type, tau.canonise().str_space()))
+    # print('tau measured {0} = {1:.1f} ms'.format(element_type, tau_measured * 1000))
 
     plt.figure()
     fig, plots = plt.subplots(2, 1)
-    plt.suptitle("Inductor: current is constant")
+    plt.suptitle("RLC Circuit")
     current_scale = 1000
-    plots[0].set_title("Voltage of Inductor")
+    plots[0].set_title("Voltage of each node")
     plots[0].grid()
     plots[0].plot(analysis['in'])
     plots[0].plot(analysis['out'])
     plots[0].plot(analysis['resistor'])
-    # plots[1].set_xlim(0, 1000)
-    plots[0].set_ylim(-0.01, 6)
-    plots[0].set_xlabel('t (s)')
+    plots[0].set_ylim(-0.01, 5.1)
+    plots[0].set_xlabel('t [μs]')
     plots[0].set_ylabel('V')
-    # Fixme: resistor current, scale
+    plots[0].legend(('Vin [V]', '$V_R$ [V]', 'Vout [V]'), loc="best")
+
+    ax1 = plots[1].twinx()
     plots[1].set_title("Current")
     plots[1].grid()
     plots[1].plot(analysis['in'])
     plots[1].plot(((analysis['in'] - analysis.out)/circuit['R1'].resistance) * current_scale)
-    # plots[1].set_xlim(0, 1000)
-    plots[1].set_ylim(-0.01, 6)
-    plots[1].set_xlabel('t [s]')
-    plots[1].set_ylabel('mA')
-    plt.legend(('Vin [V]', 'Vout [V]', 'I'), loc=(.8,.8))
+    plots[1].set_xlim(0, 1000)
+    plots[1].set_ylim(-0.01, 5.1)
+    plots[1].set_xlabel('t [μs]')
+    plots[1].set_ylabel('Voltage [V]')
+    ax1.set_ylabel('Current [mA]')
+    plots[1].legend(('Vin [V]', 'I [mA]'), loc="best")
 
     plt.tight_layout()
     plt.savefig("figures/RLCCircuit.jpg", dpi=600)

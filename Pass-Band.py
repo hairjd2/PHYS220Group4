@@ -15,7 +15,10 @@ circuit1 = Circuit('Four double-pole Low-Pass RLC Filter')
 inductance = 10@u_mH
 capacitance = 1@u_uF
 
-circuit1.SinusoidalVoltageSource('input', 'in', circuit1.gnd, amplitude=1@u_V)
+circuit1.SinusoidalVoltageSource('input', 
+                                 'in', 
+                                 circuit1.gnd, 
+                                 amplitude=1@u_V)
 # Q = .5
 circuit1.R(1, 'in', 1, 200@u_Ω)
 circuit1.L(1, 1, 'out5', inductance)
@@ -34,7 +37,10 @@ circuit1.L(4, 4, 'out4', inductance)
 circuit1.C(4, 'out4', circuit1.gnd, capacitance)
 
 simulator1 = circuit1.simulator(temperature=25, nominal_temperature=25)
-analysis1 = simulator1.ac(start_frequency=100@u_Hz, stop_frequency=10@u_kHz, number_of_points=100,  variation='dec')
+analysis1 = simulator1.ac(start_frequency=100@u_Hz, 
+                          stop_frequency=10@u_kHz, 
+                          number_of_points=100,  
+                          variation='dec')
 
 resonant_frequency = 1 / (2 * math.pi * math.sqrt(inductance * capacitance))
 quality_factor = 1 / R4.resistance * math.sqrt(inductance / capacitance)
