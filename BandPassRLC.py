@@ -53,7 +53,9 @@ bode_diagram(axes=axes,
              color='magenta',
              linestyle='-',
             )
-
+for ax in axes:
+    ax.axvline(x=resonant_frequency, color='red')
+    
 plt.tight_layout()
 plt.show()
 
