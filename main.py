@@ -86,7 +86,7 @@ def drawRL():
         d += elm.SourceV().up().label('5V')
         d.save("figures/RLDrawingClosed.jpg")
 
-def drawRLC():
+def drawBandpass():
 # Drawing of Bandpass filter circuit
     with schemdraw.Drawing() as d:
         d += elm.Dot().label("in")
@@ -98,7 +98,7 @@ def drawRLC():
         d += elm.Line().left()
         d += elm.Line().left()
         d += elm.SourceSin().up().label(r'1sin($\omega$t)')
-        d.save("figures/RLCDrawing.jpg")
+        d.save("figures/BandpassDrawing.jpg")
 
 def voltageDivider():
 # Runs SchemDraw figure function
@@ -256,7 +256,7 @@ def RLCircuit():
     plt.savefig("figures/RLCircuit.jpg", dpi=600)
 
 def BandPass():
-    drawRLC()
+    drawBandpass()
 
     circuit = Circuit('Band Pass RLC Filter') 
     source = circuit.SinusoidalVoltageSource('input', 'in', 
@@ -306,7 +306,7 @@ def BandPass():
         ax.axvline(x=resonant_frequency, color='red')
         
     plt.tight_layout()
-    plt.savefig('BandpassBodeplot.jpg', dpi=600)
+    plt.savefig('figures/BandpassBodeplot.jpg', dpi=600)
 
 def start():
 # Provided menu for user to simulate the circuit of their choice
